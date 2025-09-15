@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Heart Risk Prediction</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #89f7fe, #66a6ff);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 4rem 20px;
+    }
+    .box {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      animation: fadeIn 0.7s ease;
+      transition: all 0.4s ease-in-out;
+      margin-bottom: 2rem;
+    }
+    h1 {
+      color: #004aad;
+      margin-bottom: 15px;
+      font-size: 28px;
+      text-shadow: 0px 1px 3px rgba(0,0,0,0.15);
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      text-align: left;
+      font-weight: 600;
+      color: #222;
+    }
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 5px;
+      background: rgba(255,255,255,0.6);
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    .input-group img {
+      width: 20px;
+      opacity: 0.7;
+    }
+    input {
+      width: 100%;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 25px;
+      padding: 12px 25px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #007bff, #00d4ff);
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      width: 30%;
+      box-shadow: 0px 4px 10px rgba(0, 123, 255, 0.4);
+    }
+    button:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0px 6px 15px rgba(0, 123, 255, 0.6);
+    }
+    .hidden { display: none; }
+    .result h2 {
+      margin-top: 20px;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    .back-btn {
+      margin-top: 20px;
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #007bff, #00d4ff);
+      color: white;
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0px 4px 10px rgba(0, 123, 255, 0.4);
+      transition: 0.3s ease;
+    }
+    .back-btn:hover {
+      transform: translateY(-2px) scale(1.02);
+    }
+    #error {
+      color: #dc3545;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .chatbot-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #007bff;
+      color: white;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 28px;
+      cursor: pointer;
+      box-shadow: 0px 4px 10px rgba(0, 123, 255, 0.5);
+      transition: 0.3s;
+      z-index: 999;
+    }
+    .chatbot-btn:hover { transform: scale(1.1); }
+    .chatbot-box {
+      position: fixed;
+      bottom: 95px;
+      right: 20px;
+      background: white;
+      width: 350px;
+      height: 450px;
+      border-radius: 15px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 999;
+    }
+    .chat-header {
+      background: linear-gradient(135deg, #007bff, #00d4ff);
+      color: white;
+      padding: 12px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ddd;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+    }
+    .chat-input button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 0 15px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .chat-input button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    .message {
+        padding: 8px 12px;
+        border-radius: 15px;
+        max-width: 80%;
+        line-height: 1.4;
+    }
+    .user-message {
+        background-color: #007bff;
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 3px;
+    }
+    .bot-message {
+        background-color: #f1f1f1;
+        color: #333;
+        align-self: flex-start;
+        border-bottom-left-radius: 3px;
+    }
+    .typing-indicator {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+    }
+    .typing-indicator span {
+        height: 8px;
+        width: 8px;
+        background-color: #999;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0 2px;
+        animation: bounce 1.2s infinite ease-in-out;
+    }
+    .typing-indicator span:nth-child(2) { animation-delay: -1.0s; }
+    .typing-indicator span:nth-child(3) { animation-delay: -0.8s; }
+    @keyframes bounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1.0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .suggestions {
+      margin-top: 25px;
+      text-align: left;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .suggestions h3 {
+      margin-top: 0;
+      color: #004aad;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .suggestions ul {
+      list-style-type: none;
+      padding-left: 0;
+      margin: 0;
+    }
+    .suggestions li {
+      margin-bottom: 10px;
+      color: #333;
+      line-height: 1.5;
+      padding-left: 25px;
+      position: relative;
+    }
+    .suggestions li::before {
+      content: '💡';
+      position: absolute;
+      left: 0;
+      top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="box" id="form-box">
+    <h1>🫀 Heart Risk Prediction</h1>
+    <label for="age">Age:</label>
+    <div class="input-group">
+      <img src="https://cdn-icons-png.flaticon.com/512/2920/2920224.png">
+      <input type="number" id="age" value="40" min="1" max="120" required>
+    </div>
+    <label for="chol">Cholesterol:</label>
+    <div class="input-group">
+      <img src="https://cdn-icons-png.flaticon.com/512/2838/2838912.png">
+      <input type="number" id="chol" value="200" min="50" max="500" required>
+    </div>
+    <label for="trestbps">Resting BP:</label>
+    <div class="input-group">
+      <img src="https://cdn-icons-png.flaticon.com/512/3480/3480562.png">
+      <input type="number" id="trestbps" value="120" min="50" max="300" required>
+    </div>
+    <label for="thalach">Max Heart Rate:</label>
+    <div class="input-group">
+      <img src="https://cdn-icons-png.flaticon.com/512/3213/3213568.png">
+      <input type="number" id="thalach" value="150" min="50" max="250" required>
+    </div>
+    <button onclick="predictRisk()">🔍 Predict Risk</button>
+    <p id="error"></p>
+  </div>
+
+  <div class="box hidden" id="result-box">
+    <h1>🩺 Prediction Result</h1>
+    <p><b>Age:</b> <span id="res-age"></span></p>
+    <p><b>Cholesterol:</b> <span id="res-chol"></span></p>
+    <p><b>Resting BP:</b> <span id="res-trestbps"></span></p>
+    <p><b>Max Heart Rate:</b> <span id="res-thalach"></span></p>
+    <h2 id="risk-text"></h2>
+    <canvas id="riskChart" width="400" height="300"></canvas>
+    <div class="suggestions">
+      <h3>💡 Recommendations</h3>
+      <ul id="suggestions-list"></ul>
+    </div>
+    <div><span class="back-btn" onclick="goBack()">🔙 Back</span></div>
+  </div>
+
+  <div class="chatbot-btn" onclick="toggleChat()">💬</div>
+  <div class="chatbot-box" id="chatbox">
+    <div class="chat-header">Cardio-Bot</div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input">
+      <input type="text" id="chatInput" placeholder="Ask about heart health..." onkeyup="if(event.keyCode === 13) sendMessage()">
+      <button id="chatButton" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <script>
+    let riskChart;
+
+    function predictRisk() {
+      const age = parseInt(document.getElementById("age").value);
+      const chol = parseInt(document.getElementById("chol").value);
+      const trestbps = parseInt(document.getElementById("trestbps").value);
+      const thalach = parseInt(document.getElementById("thalach").value);
+      const errorEl = document.getElementById("error");
+      errorEl.textContent = "";
+
+      if (isNaN(age) || isNaN(chol) || isNaN(trestbps) || isNaN(thalach)) {
+        errorEl.textContent = "⚠️ Please fill all fields.";
+        return;
+      }
+
+      const riskScore = ((chol - 150) / 50) + ((trestbps - 120) / 20) + ((180 - thalach) / 30);
+      let prediction, color, low, medium, high;
+
+      if (riskScore < 2) {
+        prediction = "Low Risk"; color = "#28a745"; low = 70; medium = 20; high = 10;
+      } else if (riskScore < 4) {
+        prediction = "Medium Risk"; color = "#ffc107"; low = 30; medium = 50; high = 20;
+      } else {
+        prediction = "High Risk"; color = "#dc3545"; low = 20; medium = 30; high = 50;
+      }
+
+      document.getElementById("res-age").textContent = age;
+      document.getElementById("res-chol").textContent = chol;
+      document.getElementById("res-trestbps").textContent = trestbps;
+      document.getElementById("res-thalach").textContent = thalach;
+      document.getElementById("risk-text").textContent = "Risk Level: " + prediction;
+      document.getElementById("risk-text").style.color = color;
+      document.getElementById("form-box").classList.add("hidden");
+      document.getElementById("result-box").classList.remove("hidden");
+
+      if (riskChart) riskChart.destroy();
+      riskChart = new Chart(document.getElementById('riskChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+          datasets: [{ data: [low, medium, high], backgroundColor: ['#28a745', '#ffc107', '#dc3545'], borderWidth: 2, borderColor: '#fff' }]
+        },
+        options: { responsive: true, animation: { animateScale: true, animateRotate: true }, plugins: { legend: { position: 'bottom' } } }
+      });
+
+      const suggestionsList = document.getElementById('suggestions-list');
+      suggestionsList.innerHTML = '';
+      let suggestions = new Set();
+
+      if (chol > 240) {
+        suggestions.add("Your cholesterol is high. Focus on a diet low in saturated and trans fats and consult a doctor.");
+      } else if (chol >= 200) {
+        suggestions.add("Your cholesterol is borderline high. Increase fiber intake (oats, fruits) and get regular exercise.");
+      }
+
+      if (trestbps >= 140) {
+        suggestions.add("Your blood pressure is high. It's important to reduce salt, manage stress, and see a healthcare provider.");
+      } else if (trestbps >= 130) {
+        suggestions.add("Your blood pressure is elevated. Monitor it regularly and limit sodium in your diet.");
+      }
+
+      if (prediction === "High Risk") {
+        suggestions.add("Your results indicate a high risk. Please consult with a doctor immediately for a comprehensive evaluation.");
+      } else if (prediction === "Medium Risk") {
+        suggestions.add("Focus on creating a consistent exercise routine and a heart-healthy meal plan.");
+      } else {
+        suggestions.add("Excellent! Your risk is low. Keep maintaining your healthy diet and active lifestyle.");
+      }
+
+      suggestions.add("Aim for 7-8 hours of quality sleep per night, as it is crucial for heart recovery and overall health.");
+
+      suggestions.forEach(suggestionText => {
+        const li = document.createElement('li');
+        li.textContent = suggestionText;
+        suggestionsList.appendChild(li);
+      });
+    }
+
+    function goBack() {
+      document.getElementById("result-box").classList.add("hidden");
+      document.getElementById("form-box").classList.remove("hidden");
+      document.getElementById("age").value = 40;
+      document.getElementById("chol").value = 200;
+      document.getElementById("trestbps").value = 120;
+      document.getElementById("thalach").value = 150;
+    }
+
+    function toggleChat() {
+      const chat = document.getElementById("chatbox");
+      chat.style.display = chat.style.display === "flex" ? "none" : "flex";
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById("chatInput");
+        const button = document.getElementById("chatButton");
+        const message = input.value.trim();
+        if (!message || button.disabled) return;
+
+        input.disabled = true;
+        button.disabled = true;
+
+        addMessage(message, "user-message");
+        input.value = "";
+        showTypingIndicator();
+
+        try {
+            // Call your own server's endpoint instead of Google's directly
+            const response = await fetch('/api/chat', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: message }) 
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Server responded with an error");
+            }
+
+            const data = await response.json();
+            const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "⚠️ Sorry, I could not get a response.";
+            addMessage(reply, "bot-message");
+
+        } catch (error) {
+            console.error("API Error:", error);
+            addMessage(`⚠️ Error: ${error.message}`, "bot-message");
+        } finally {
+            removeTypingIndicator();
+            setTimeout(() => {
+                input.disabled = false;
+                button.disabled = false;
+                input.focus();
+            }, 4000);
+        }
+    }
+
+    function addMessage(text, className) {
+      const chatMessages = document.getElementById("chatMessages");
+      const msgDiv = document.createElement("div");
+      msgDiv.className = `message ${className}`;
+      msgDiv.textContent = text;
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const chatMessages = document.getElementById("chatMessages");
+      const indicator = document.createElement("div");
+      indicator.id = "typingIndicator";
+      indicator.className = "typing-indicator";
+      indicator.innerHTML = '<span></span><span></span><span></span>';
+      chatMessages.appendChild(indicator);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const indicator = document.getElementById("typingIndicator");
+      if (indicator) {
+        indicator.remove();
+      }
+    }
+  </script>
+</body>
+</html>
